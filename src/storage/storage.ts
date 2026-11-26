@@ -70,6 +70,8 @@ export interface AppSettings {
   /** 使用者確認目前站在住宅幾何中心附近（規格 7：住宅精確定位的前置條件） */
   homeAtCenter: boolean;
   homeSetAt: string | null;
+  /** 畫面視角（影像長邊，度）。偽 VR 盤面的透視用；預設概估值，可在設定微調 */
+  fovLongDeg: number;
 }
 
 export interface LSData {
@@ -86,6 +88,7 @@ export function defaultSettings(): AppSettings {
     currentPersonId: null,
     homeAtCenter: false,
     homeSetAt: null,
+    fovLongDeg: 66,
   };
 }
 
@@ -109,6 +112,9 @@ function migrateLS(data: LSData): LSData {
   if (typeof data.settings.manualOffsetDeg !== "number") data.settings.manualOffsetDeg = 0;
   if (typeof data.settings.homeAtCenter !== "boolean") data.settings.homeAtCenter = false;
   if (typeof data.settings.homeSetAt !== "string") data.settings.homeSetAt = null;
+  if (typeof data.settings.fovLongDeg !== "number" || data.settings.fovLongDeg < 40 || data.settings.fovLongDeg > 100) {
+    data.settings.fovLongDeg = 66;
+  }
   if (!Array.isArray(data.persons)) data.persons = [];
   data.schemaVersion = SCHEMA_VERSION;
   return data;

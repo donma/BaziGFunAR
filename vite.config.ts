@@ -15,7 +15,7 @@ export default defineConfig({
       manifest: {
         name: "BaziGFun AR 八宅實景",
         short_name: "BaziGFun AR",
-        description: "八宅命卦實景 AR 貼紙（本機離線，不上傳資料）",
+        description: "站在八宅羅盤中央：偽 VR 實景八方吉凶（本機離線，不上傳資料）",
         lang: "zh-Hant",
         display: "standalone",
         orientation: "any",
@@ -30,24 +30,9 @@ export default defineConfig({
         ],
       },
       workbox: {
-        // tfjs 懶載入 chunk 較大，放寬預先快取上限，讓「辨識程式碼」也離線可用
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
         globPatterns: ["**/*.{js,css,html,svg,png,woff2}"],
         navigateFallback: "/BaziGFunAR/index.html",
-        runtimeCaching: [
-          {
-            // 模型權重（COCO-SSD lite_mobilenet_v2）：第一次線上載入成功後即離線可用。
-            // 模型管理器（modelRegistry）會在下載後逐項驗證，失敗不啟用、離線時誠實提示。
-            urlPattern: new RegExp("^https://storage\\.googleapis\\.com/tfjs-models/.*"),
-            handler: "CacheFirst",
-            options: {
-              cacheName: "bazigfunar-models-v1",
-              expiration: { maxEntries: 12, purgeOnQuotaError: true },
-              cacheableResponse: { statuses: [0, 200] },
-              rangeRequests: false,
-            },
-          },
-        ],
+        runtimeCaching: [],
       },
     }),
   ],

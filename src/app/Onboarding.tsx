@@ -61,10 +61,10 @@ export function Onboarding({
         ) : !intro ? (
           <>
             <h2>準備好了</h2>
-            <p>進入 AR 時，瀏覽器會請求相機與「動作與方向」感測權限；兩者都具備才會顯示實景貼紙。若拒絕，其他功能仍可使用。</p>
+            <p>進入後，瀏覽器會請求相機與「動作與方向」感測權限；兩者都具備才會顯示實景八宅盤。若拒絕，其他功能仍可使用。</p>
             <ul className="onboarding-list">
-              <li>相機畫面優先顯示，模型在背景自動載入。</li>
-              <li>物件貼紙分為「朝向參考」與「住宅宮位已確認」，不會混淆。</li>
+              <li>你會站在羅盤中央，腳下是依你命卦算出的八方吉凶盤。</li>
+              <li>轉動手機，盤面跟著真實方位旋轉；點某個扇區可看解讀。</li>
               <li>按一次快門同時保存原始實景照與 AR 合成照。</li>
             </ul>
             <button className="btn wide" onClick={() => setIntro(true)}>下一步</button>
@@ -72,7 +72,7 @@ export function Onboarding({
         ) : (
           <>
             <h2>開始實景量測</h2>
-            <p>手持手機水平，看向想參考的方向。貼紙可拖曳修正，點一下可查看詳細解讀。你可以隨時在設定中校正或啟用住宅定位。</p>
+            <p>手持手機水平，環顧四周。腳下的盤面會隨方位轉動，點一下扇區看解讀；覺得方位偏了就按「校正」。</p>
             <button className="btn primary wide" onClick={onFinish}>進入 AR</button>
           </>
         )}

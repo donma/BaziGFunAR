@@ -62,7 +62,7 @@ export function SettingsSheet(p: {
       </div>
 
       <div className="set-section">
-        <h3>住宅宮位定位（選用）</h3>
+        <h3>住宅中心（選用）</h3>
         <label className="switch-row">
           <input
             type="checkbox"
@@ -73,10 +73,26 @@ export function SettingsSheet(p: {
           />
           <span>
             <b>我目前站在住宅中心附近</b>
-            <small>只有在你確認此點、且感測良好、遠離方位交界時，標籤才會顯示「住宅宮位已確認」。</small>
+            <small>開啟且感測良好時，盤面標示為「住宅中心方位」；否則只標「目前位置方位（朝向參考）」。</small>
           </span>
         </label>
-        <p className="hint">預設不開啟：一般模式只給朝向參考。純 PWA 無法保證原生等級的空間錨定，系統不會用 2D 框冒充住宅幾何位置。</p>
+        <p className="hint">八宅正式判定以住宅中心與坐向為準。盤面是以你所站位置為圓心的方位盤，不偵測物件，也不是自動室內定位。</p>
+      </div>
+
+      <div className="set-section">
+        <h3>畫面視角（進階）</h3>
+        <div className="field">
+          <label>相機視角：{p.settings.fovLongDeg}°（若盤面透視與實景落差大，可微調）</label>
+          <input
+            type="range"
+            min={50}
+            max={90}
+            step={1}
+            value={p.settings.fovLongDeg}
+            onChange={(e) => p.updateSettings({ fovLongDeg: Number(e.target.value) })}
+          />
+        </div>
+        <p className="hint">這是概估值：不同手機鏡頭視角不同。調大＝盤面看起來更遠、更平；調小＝更近、更陡。</p>
       </div>
 
       <div className="set-section">
