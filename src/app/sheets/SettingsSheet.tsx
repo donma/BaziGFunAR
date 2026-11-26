@@ -136,6 +136,15 @@ export function SettingsSheet(p: {
       <div className="set-section">
         <h3>關於</h3>
         <p className="hint">BaziGFun AR v{APP_VERSION}。八宅風水為傳統文化參考，不宣稱科學驗證的因果事實。相機影格、出生資料與照片不離開裝置。</p>
+        <button
+          className="btn wide"
+          onClick={() => {
+            p.showToast("正在載入最新版…");
+            void import("../../pwa/registerSW").then((m) => m.hardRefresh());
+          }}
+        >
+          重新載入最新版（不會刪除人物與紀錄）
+        </button>
       </div>
     </BottomSheet>
   );
