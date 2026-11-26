@@ -192,6 +192,33 @@
 .ar-stop-actions .btn { flex: 1 1 40%; min-width: 120px; }
 .ar-stopped-note { color: rgba(246,241,231,0.6) !important; }
 
+/* ---------- 方向感測提示與懸浮備援貼紙 ---------- */
+.sensor-prompt {
+  position: absolute; z-index: 6;
+  left: 50%; top: 42%; transform: translate(-50%, -50%);
+  width: min(86vw, 340px); padding: 18px; text-align: center;
+}
+.sensor-prompt b { font-family: var(--font-serif); font-size: 18px; color: #e3c982; }
+.sensor-prompt p { font-size: 13px; line-height: 1.6; color: rgba(246,241,231,0.85); margin: 8px 0 14px; }
+.ar-float {
+  position: absolute; z-index: 4;
+  left: 50%; top: 52%; transform: translate(-50%, -50%);
+  min-width: 170px; min-height: 64px;
+  display: flex; flex-direction: column; align-items: center; gap: 1px;
+  padding: 9px 18px 11px;
+  border: 1px solid var(--good); border-radius: 16px;
+  background: linear-gradient(150deg, rgba(30,24,14,0.9), rgba(16,12,7,0.88));
+  color: var(--c-cream);
+  box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 20px rgba(126,178,118,0.22), inset 0 1px 0 rgba(255,255,255,0.1);
+  backdrop-filter: blur(10px);
+}
+.ar-float.tone-bad { border-color: var(--bad); box-shadow: 0 10px 26px rgba(0,0,0,0.5), 0 0 20px rgba(203,108,92,0.22), inset 0 1px 0 rgba(255,255,255,0.1); }
+.ar-float.tone-good .ar-sticker-title { color: #b9e6b0; }
+.ar-float.tone-bad .ar-sticker-title { color: #f2ada1; }
+.ar-float .ar-sticker-title { font-size: 20px; }
+.ar-float.tone-good .ar-sticker-status { color: #a9dba0; }
+.ar-float.tone-bad .ar-sticker-status { color: #f0a89c; }
+
 /* ---------- 橫式／平板 RWD ---------- */
 @media (orientation: landscape) and (max-height: 520px) {
   .ar-top { grid-template-columns: auto 1fr auto; top: calc(var(--sat) + 6px); }

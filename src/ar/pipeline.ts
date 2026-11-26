@@ -267,7 +267,7 @@ export class ARPipeline {
     if (!cctx) return [];
     cctx.drawImage(video, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, iw, ih);
 
-    const modelDets = await detectOnCanvas(canvas, { maxBoxes: 8, minScore: 0.45 });
+    const modelDets = await detectOnCanvas(canvas, { maxBoxes: 10, minScore: 0.35 });
 
     // 幾何候選（門／窗）：每 N 次語意辨識跑一次（低成本）
     let geoDets: Detection[] = [];

@@ -25,7 +25,7 @@ import {
   type Person,
 } from "../storage/storage";
 import { defOf, GEO_CONFIRM_KINDS, type ObjectKind } from "../vision/labels";
-import { STAR_DESC, STAR_LAYOUT } from "./starText";
+import { STAR_DESC, STAR_LAYOUT, STAR_SHORT } from "./starText";
 import { BottomSheet } from "./ui";
 import { CalibrationModal, signedOffset } from "./CalibrationModal";
 import { ARStopped, type ARStopReasons } from "./ARStopped";
@@ -41,6 +41,7 @@ export interface ARScreenProps {
   openSheet: (kind: SheetKind) => void;
   appSheetOpen: boolean;
   initialSensorPermission: SensorPermission;
+  requestSensor: () => Promise<void>;
   showToast: (msg: string) => void;
   onCaptureSaved: () => void;
 }
@@ -368,7 +369,9 @@ export function ARScreen(p: ARScreenProps) {
 
   const aiChip = (() => {
     if (status?.detector === "ready") {
-      return { text: status.trackCount > 0 ? `AI 就緒 · ${status.trackCount}` : "AI 就緒", tone: "good" };
+      const n = status.trackCount;
+      const ms = status.inferenceMs !== null ? ` · ${Math.round(status.inferenceMs)}ms` : "";
+      return { text: `AI 就緒 · ${n} 物件${ms}`, tone: "good" };
     }
     if (status?.model === "offline-missing") return { text: "AI 離線未快取", tone: "warn" };
     if (status?.model === "failed" || status?.detector === "failed") return { text: "AI 失敗", tone: "warn" };
@@ -466,6 +469,27 @@ export function ARScreen(p: ARScreenProps) {
         {nearBoundary && <div className="ar-warn">接近方位交界（距邊界 {boundaryDist!.toFixed(1)}°），吉凶可能跳動。</div>}
         {desc}
       </div>
+
+      {p.initialSensorPermission === "prompt" && (
+        <div className="sensor-prompt glass glass-strong">
+          <b>需要方向感測</b>
+          <p>iPhone 需要你點一下才能啟用「動作與方向」，才會顯示方位吉凶。</p>
+          <button className="btn primary" onClick={() => void p.requestSensor()}>啟用方向感測</button>
+        </div>
+      )}
+
+      {/* 懸浮式備援（決策 1D）：沒有辨識到物件時，仍顯示目前朝向的八宅提示；只標「朝向參考」，不宣稱物件或住宅宮位 */}
+      {trusted && star && palace && (status?.trackCount ?? 0) === 0 && (
+        <button
+          className={`ar-float tone-${isGoodStar(star) ? "good" : "bad"}`}
+          onClick={() => p.openSheet("analysis")}
+          aria-label={`${palace.branch}方 ${STARS[star].name}，點擊查看命卦方位`}
+        >
+          <span className="ar-sticker-title">{palace.branch}方 · {STARS[star].name}</span>
+          <span className="ar-sticker-sub">{STAR_SHORT[star]}</span>
+          <span className="ar-sticker-status">朝向參考</span>
+        </button>
+      )}
 
       <footer className="ar-bottom">
         <button className="ar-round" onClick={() => p.openSheet("persons")} aria-label="人物">

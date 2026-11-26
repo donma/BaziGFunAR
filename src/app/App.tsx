@@ -37,7 +37,12 @@ export default function App() {
   const [ls, setLs] = useState<LSData>(() => loadLS());
   const [view, setView] = useState<"onboarding" | "ar">(() => (loadLS().persons.length === 0 ? "onboarding" : "ar"));
   const [modal, setModal] = useState<Modal>(null);
-  const [sensorPermission, setSensorPermission] = useState<SensorPermission>("prompt");
+  const [sensorPermission, setSensorPermission] = useState<SensorPermission>(() => {
+    const caps = detectCapabilities();
+    if (!caps.hasDeviceOrientation) return "unsupported";
+    // 非 iOS 13+：不需要請求權限，直接視為可用（先前漏了這一步，導致感測從未啟動）
+    return caps.hasRequestPermission ? "prompt" : "granted";
+  });
   const [toast, setToast] = useState<string | null>(null);
   const [records, setRecords] = useState<PhotoRecordMeta[]>([]);
   const [photoUrls, setPhotoUrls] = useState<Record<string, string>>({});
@@ -212,9 +217,9 @@ export default function App() {
     [records, refreshRecords, showToast],
   );
 
-  /* ---------- 進入 AR（方向感測權限需在使用者手勢中請求） ---------- */
+  /* ---------- 方向感測權限（iOS 需在使用者手勢中請求；Android／桌面無需請求） ---------- */
 
-  const enterAR = useCallback(async () => {
+  const requestSensor = useCallback(async () => {
     const res = await requestOrientationPermission();
     // 決策 20A：方向能力不可用時停止 AR（不在缺少感測能力的裝置上偷偷顯示不可靠 AR）
     const caps = detectCapabilities();
@@ -223,8 +228,12 @@ export default function App() {
     if (effective === "denied") {
       showToast("方向感測權限被拒絕；AR 已停止，可在設定中重新授權");
     }
-    setView("ar");
   }, [showToast]);
+
+  const enterAR = useCallback(async () => {
+    await requestSensor();
+    setView("ar");
+  }, [requestSensor]);
 
   /* ---------- 返回鍵與 Esc：先關閉卡片／彈出層 ---------- */
 
@@ -261,7 +270,7 @@ export default function App() {
         <Onboarding
           onAddPerson={addPerson}
           personCount={ls.persons.length}
-          onFinish={() => setView("ar")}
+          onFinish={() => void enterAR()}
         />
       ) : (
         <ARScreen
@@ -274,6 +283,7 @@ export default function App() {
           openSheet={openSheet}
           appSheetOpen={modalOpen}
           initialSensorPermission={sensorPermission}
+          requestSensor={requestSensor}
           showToast={showToast}
           onCaptureSaved={refreshRecords}
         />

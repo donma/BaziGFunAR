@@ -18,10 +18,10 @@ export interface PerfLevel {
 }
 
 export const PERF_LEVELS: PerfLevel[] = [
-  { id: 0, detectIntervalMs: 1100, inputWidth: 224, maxTracks: 6, geometricEvery: 3 },
-  { id: 1, detectIntervalMs: 1600, inputWidth: 192, maxTracks: 5, geometricEvery: 4 },
-  { id: 2, detectIntervalMs: 2400, inputWidth: 160, maxTracks: 4, geometricEvery: 5 },
-  { id: 3, detectIntervalMs: 3600, inputWidth: 128, maxTracks: 3, geometricEvery: 8 },
+  { id: 0, detectIntervalMs: 900, inputWidth: 320, maxTracks: 6, geometricEvery: 3 },
+  { id: 1, detectIntervalMs: 1400, inputWidth: 256, maxTracks: 5, geometricEvery: 4 },
+  { id: 2, detectIntervalMs: 2200, inputWidth: 192, maxTracks: 4, geometricEvery: 5 },
+  { id: 3, detectIntervalMs: 3400, inputWidth: 160, maxTracks: 3, geometricEvery: 8 },
 ];
 
 export interface PerfSignals {

@@ -30,7 +30,7 @@ const context = await browser.newContext({
   deviceScaleFactor: 2,
   isMobile: true,
   hasTouch: true,
-  permissions: ["camera"],
+  permissions: ["camera", "accelerometer", "gyroscope", "magnetometer"],
 });
 const page = await context.newPage();
 page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
@@ -51,25 +51,39 @@ try {
   await page.getByRole("button", { name: "進入 AR" }).click();
 
   await page.locator(".scene").waitFor();
-  // 假相機可能偶發启动失败：走 AR 停止畫面的「重試相機」入口（同時驗證決策 20A 的恢復流程）
-  for (let i = 0; i < 4; i++) {
-    if (!(await page.locator(".ar-stopped").count())) break;
-    const retry = page.locator(".ar-stop-card button").first();
-    if (await retry.count()) await retry.click();
-    await page.waitForTimeout(1500);
-  }
-  await page.waitForFunction(() => !document.querySelector(".ar-stopped"), null, { timeout: 15000 });
-  await page.waitForFunction(() => [...document.querySelectorAll(".status-chips .chip")].some((c) => c.textContent?.includes("AI 就緒")), null, { timeout: 120000 });
-  await page.waitForTimeout(1200);
 
-  // 假相機串流可能自行結束：點狀態列膠囊重新開啟（與真機中斷處理同一路徑）
-  const camChip = page.locator(".status-chips .chip-btn").filter({ hasText: /相機/ });
-  for (let i = 0; i < 3; i++) {
-    if ((await camChip.textContent())?.includes("相機✓")) break;
-    if (await camChip.count()) await camChip.click();
-    await page.waitForTimeout(1200);
-  }
-  await page.waitForFunction(() => [...document.querySelectorAll(".status-chips .chip")].some((c) => c.textContent?.includes("相機✓")), null, { timeout: 15000 });
+  // 假相機偶發結束：統一的恢復流程（AR 停止畫面「重試相機」／狀態列相機膠囊，同真機中斷處理路徑）
+  const ensureCam = async () => {
+    for (let i = 0; i < 8; i++) {
+      if (await page.locator(".ar-stopped").count()) {
+        const retry = page.locator(".ar-stop-card button").first();
+        if (await retry.count()) await retry.click();
+      } else {
+        const chip = page.locator(".status-chips .chip-btn").filter({ hasText: /相機/ });
+        const text = (await chip.count()) ? await chip.first().textContent() : "";
+        if (text?.includes("相機✓")) return;
+        if (text) await chip.first().click();
+      }
+      await page.waitForTimeout(1200);
+    }
+    throw new Error("相機無法恢復");
+  };
+  await ensureCam();
+  await page.waitForFunction(() => [...document.querySelectorAll(".status-chips .chip")].some((c) => c.textContent?.includes("AI 就緒")), null, { timeout: 120000 });
+  await ensureCam();
+  await page.waitForTimeout(500);
+
+  // 模擬方向感測：alpha=45、直立 → 鏡頭朝西北 315°；乾六命（1991 女）西北＝伏位
+  await page.evaluate(() => {
+    for (let i = 0; i < 5; i++) {
+      window.dispatchEvent(new DeviceOrientationEvent("deviceorientation", { alpha: 45, beta: 90, gamma: 0, absolute: true }));
+    }
+  });
+  await page.waitForTimeout(800);
+  report.headingAfter = await page.locator(".heading-deg").textContent();
+  report.hudStar = await page.locator(".heading-star").textContent().catch(() => null);
+  report.floatSticker = await page.locator(".ar-float, .ar-sticker").count();
+  await page.screenshot({ path: `${OUT}/ar-heading.png` });
 
   report.scene = await page.locator(".scene").count();
   report.chips = await page.locator(".status-chips .chip").allTextContents();
@@ -114,7 +128,8 @@ try {
   report.errors = errors;
   console.log(JSON.stringify(report, null, 2));
 
-  if (report.scene !== 1 || report.shutter !== 1 || db.records < 1 || db.photos < 2 || errors.length > 0) {
+  if (report.scene !== 1 || report.shutter !== 1 || db.records < 1 || db.photos < 2 || errors.length > 0 ||
+      !report.headingAfter?.includes("315") || report.hudStar !== "伏位") {
     process.exitCode = 1;
   }
 } catch (e) {
