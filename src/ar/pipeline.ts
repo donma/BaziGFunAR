@@ -18,6 +18,8 @@ import { planLayout, cardHeightPx, type StickerPlan } from "./stickerLayout";
 import { StickerRenderer, type StickerView, type StickerTone } from "./stickerRenderer";
 import { detectOnCanvas, getDetectorState, loadDetector, type DetectorState } from "../vision/detector";
 import { detectQuadCandidates } from "../vision/geometric";
+
+const ENABLE_GEOMETRIC_CANDIDATES = false;
 import { ModelRegistry, type ModelState } from "../vision/modelRegistry";
 import { defOf, type ObjectKind } from "../vision/labels";
 import { STARS, type DirectionDeg, type StarKey } from "../domain/bazhai/bazhai";
@@ -270,8 +272,10 @@ export class ARPipeline {
     const modelDets = await detectOnCanvas(canvas, { maxBoxes: 10, minScore: 0.35 });
 
     // 幾何候選（門／窗）：每 N 次語意辨識跑一次（低成本）
+    // 幾何門窗候選：實測雜訊過多（牆角、櫃子、畫框都被當候選），預設關閉。
+    // 門／窗目前不辨識；之後若要支援，改用「使用者手動標記」或專用模型，而非自動猜測。
     let geoDets: Detection[] = [];
-    if (this.detectCount % cfg.geometricEvery === 0) {
+    if (ENABLE_GEOMETRIC_CANDIDATES && this.detectCount % cfg.geometricEvery === 0) {
       const cands = detectQuadCandidates(canvas, 2);
       geoDets = cands.map((c) => ({
         kind: "door",
