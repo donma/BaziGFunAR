@@ -175,3 +175,61 @@
   .mg-person-label { width: 100%; }
   .mg-cell { min-height: 64px; }
 }
+
+/* ================================================================
+ * 青藍霓虹主題：覆蓋原本的米色面板，與 AR 畫面一致
+ * ================================================================ */
+.sheet {
+  --c-ink: #e6f7ff; --c-ink-soft: #8fbfdc;
+  background: rgba(4, 12, 32, 0.95); color: #e6f7ff;
+  border-top: 1px solid rgba(96, 205, 255, 0.45);
+  box-shadow: 0 -14px 44px rgba(0, 0, 0, 0.55), 0 -2px 26px rgba(70, 190, 255, 0.2);
+}
+.sheet-handle { background: rgba(120, 210, 255, 0.5); }
+.sheet-head { border-bottom-color: rgba(96, 205, 255, 0.25); }
+.sheet-title { text-shadow: 0 0 12px rgba(90, 210, 255, 0.5); }
+.sheet .list-card { background: rgba(14, 40, 86, 0.55); border-color: rgba(96, 205, 255, 0.28); }
+.sheet .list-card.is-current { background: rgba(20, 70, 140, 0.55); border-color: #6fdcff; box-shadow: 0 0 0 1px rgba(111, 220, 255, 0.25) inset; }
+.sheet .current-dot { background: #2f9dff; }
+.sheet .mini-tag { border-color: rgba(111, 220, 255, 0.4); }
+.sheet .star-good { color: #7fe3ff; }
+.sheet .star-bad { color: #ff9f86; }
+.sheet .form-card, .sheet .switch-row, .sheet .segmented { background: rgba(14, 40, 86, 0.5); border-color: rgba(96, 205, 255, 0.3); }
+.sheet .segmented button.on { background: rgba(60, 150, 230, 0.55); color: #fff; box-shadow: none; }
+.sheet .field input, .sheet .field select { background: rgba(6, 20, 50, 0.85); color: #e6f7ff; border-color: rgba(96, 205, 255, 0.4); }
+.sheet .field input:focus, .sheet .field select:focus { border-color: #6fdcff; box-shadow: 0 0 0 2px rgba(111, 220, 255, 0.25); }
+.sheet .thumb { background: #0a1c40; border-color: rgba(96, 205, 255, 0.35); }
+.sheet .thumb-ar { border-color: #6fdcff; }
+.sheet .btn { border-color: rgba(96, 205, 255, 0.4); background: rgba(40, 120, 220, 0.18); }
+.sheet .btn.primary { color: #021428; background: linear-gradient(135deg, #67d9ff, #2f7dff); }
+.sheet .form-err { color: #ffb4a3; background: rgba(255, 122, 92, 0.14); }
+.sheet .track-grid > div { background: rgba(14, 40, 86, 0.5); border-color: rgba(96, 205, 255, 0.28); }
+.sheet .track-lead { text-shadow: 0 0 16px rgba(90, 210, 255, 0.6); }
+.sheet .status-confirmed-home { color: #7fe3ff; background: rgba(60, 180, 255, 0.15); }
+.sheet .status-pending { color: #ffd9a0; background: rgba(255, 190, 110, 0.12); }
+.sheet .mg-panel { background: rgba(10, 30, 70, 0.6); border-color: rgba(96, 205, 255, 0.25); color: #e6f7ff; }
+.sheet .mg-card { background: rgba(14, 40, 86, 0.5); border-color: rgba(96, 205, 255, 0.35); }
+.sheet .mg-title { color: #8fe6ff; }
+.sheet .mg-bar { background: #8fe6ff; }
+.sheet .mg-group-pill { border-color: #6fdcff; color: #6fdcff; }
+.sheet .mg-wuhuang { color: #ffd9a0; }
+.sheet .mg-cell.mg-good { border-top-color: #62d6ff; }
+.sheet .mg-cell.mg-bad { border-top-color: #ff7a5c; }
+.sheet .mg-cell-luck.good { color: #7fe3ff; }
+.sheet .mg-cell-luck.bad { color: #ff9f86; }
+.sheet .mg-cell.mg-highlight { box-shadow: 0 0 0 2px #6fdcff inset; background: rgba(60, 160, 240, 0.2); }
+.sheet .mg-intro { background: rgba(10, 30, 70, 0.5); border-color: rgba(96, 205, 255, 0.3); }
+
+.detail-tabs button.on { background: linear-gradient(135deg, #67d9ff, #2f7dff); color: #021428; border-color: #9fe8ff; }
+
+.onboarding { background: radial-gradient(circle at 50% 25%, #0b2250, #040a1a 72%); }
+.onboarding-card { --c-ink: #e6f7ff; --c-ink-soft: #8fbfdc; background: rgba(5, 16, 42, 0.82); color: #e6f7ff; border-color: rgba(96, 205, 255, 0.4); }
+.onboarding-card .field input, .onboarding-card .field select { background: rgba(6, 20, 50, 0.85); color: #e6f7ff; border-color: rgba(96, 205, 255, 0.4); }
+.brand-mark { color: #8fe6ff; text-shadow: 0 0 22px rgba(90, 210, 255, 0.8); }
+.onboarding-brand p { color: #8fe6ff; }
+
+.manual-screen { background: radial-gradient(circle at 50% 30%, #0b2250, #040a1a 72%); }
+.manual-head p, .manual-dir { color: #8fe6ff; }
+.manual-star.good { color: #7fe3ff; }
+.manual-star.bad { color: #ff9f86; }
+.manual-bar input[type="range"] { accent-color: #6fdcff; }

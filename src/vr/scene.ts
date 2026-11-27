@@ -22,6 +22,7 @@ import {
   type Basis,
 } from "./math";
 import { drawVR, type RenderState } from "./render";
+import { invalidateGlyphs } from "./glyphs";
 
 export interface SceneInput {
   /** 感測引擎的顯示方位（已含校正／磁偏角／朝天凍結）；null＝無 */
@@ -72,6 +73,12 @@ export class VRScene {
   private dpr = 1;
   private disposed = false;
   private down: { x: number; y: number; t: number; id: number } | null = null;
+  /** 特效等級：2 完整、1 精簡、0 靜態；幀率不足自動降級，使用者要求減少動態時固定為 0 */
+  private fx: 0 | 1 | 2 = 2;
+  private reducedMotion = false;
+  private emaDt = 16;
+  private slowSince = 0;
+  private clock = 0;
   facingSector: DirectionDeg | null = null;
 
   constructor(host: HTMLElement, cb: VRSceneCallbacks) {
@@ -93,6 +100,15 @@ export class VRScene {
     this.ro = new ResizeObserver(() => this.resize());
     this.ro.observe(host);
     this.resize();
+
+    this.reducedMotion =
+      typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    if (this.reducedMotion) this.fx = 0;
+    // 發光字貼圖要等內嵌字體載入後才烘焙，否則會烘進備用字體
+    if (document.fonts) {
+      void document.fonts.load('700 24px "BZ Serif"', "乾坎艮震巽離坤兌").then(() => invalidateGlyphs()).catch(() => undefined);
+      void document.fonts.ready.then(() => invalidateGlyphs()).catch(() => undefined);
+    }
   }
 
   /* ---------- 生命週期 ---------- */
@@ -190,6 +206,18 @@ export class VRScene {
     this.raf = requestAnimationFrame(this.frame);
     const dt = this.lastTs ? Math.min(100, ts - this.lastTs) : 16;
     this.lastTs = ts;
+    this.clock = ts / 1000;
+
+    // 幀率不足時自動降低特效（2 → 1 → 0），避免手機卡頓與發燙
+    this.emaDt = this.emaDt * 0.92 + dt * 0.08;
+    if (this.emaDt > 36 && this.fx > 0) {
+      if (!this.slowSince) this.slowSince = ts;
+      else if (ts - this.slowSince > 1500) {
+        this.fx = (this.fx - 1) as 0 | 1 | 2;
+        this.slowSince = ts;
+        this.emaDt = 20;
+      }
+    } else this.slowSince = 0;
 
     const ctx = this.ctx;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -209,8 +237,8 @@ export class VRScene {
       const cur = this.glow[p.deg] ?? 0;
       this.glow[p.deg] = cur + (target - cur) * k;
     }
-    // 初次出現淡入（一次性）
-    this.appear = Math.min(1, this.appear + dt / 650);
+    // 初次出現：由中心向外逐圈點亮（一次性）
+    this.appear = Math.min(1, this.appear + dt / 1600);
 
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     drawVR(ctx, this.W, this.H, this.snapshot(b, facingAz) as RenderState);
@@ -226,6 +254,8 @@ export class VRScene {
       selectedSector: this.input.selectedSector,
       dim: this.input.dim,
       appear: this.appear,
+      time: this.clock,
+      fx: this.fx,
     };
   }
 

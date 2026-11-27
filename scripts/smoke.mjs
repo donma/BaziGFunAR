@@ -107,7 +107,7 @@ try {
   await ensureCam();
 
   // 低頭看地板：朝西北（alpha=45）、低頭約 40°（beta=50）
-  await pose(45, 50, 0, 1500);
+  await pose(45, 50, 0, 2400);
   await ensureCam();
   report.headingDown = await page.locator(".heading-deg").textContent();
   report.paintedDown = await paintedPixels();
@@ -138,7 +138,10 @@ try {
 
   // 按快門：一次產生原始＋AR 照片，同一筆紀錄
   await pose(45, 50, 0, 800);
-  await ensureCam();
+  for (let i = 0; i < 4; i++) {
+    await ensureCam();
+    if (await page.locator(".shutter").isEnabled()) break;
+  }
   await page.locator(".shutter").click();
   await page.waitForTimeout(1800);
   report.toast = await page.locator(".toast").textContent().catch(() => null);
@@ -167,6 +170,30 @@ try {
   });
 
   report.sw = await page.evaluate(() => !!navigator.serviceWorker.controller);
+
+  // 取出 AR 合成照存成檔案，目視確認照片中的盤面
+  const arB64 = await page.evaluate(async () => {
+    const d = await new Promise((resolve, reject) => {
+      const r = indexedDB.open("bazigfunar", 1);
+      r.onsuccess = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+    });
+    const photos = await new Promise((resolve, reject) => {
+      const r = d.transaction("photos", "readonly").objectStore("photos").getAll();
+      r.onsuccess = () => resolve(r.result);
+      r.onerror = () => reject(r.error);
+    });
+    const ar = photos.find((p) => p.kind === "ar");
+    if (!ar) return null;
+    const bytes = new Uint8Array(await ar.blob.arrayBuffer());
+    let bin = "";
+    for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+    return btoa(bin);
+  });
+  if (arB64) {
+    const { writeFileSync } = await import("node:fs");
+    writeFileSync(`${OUT}/photo-ar.jpg`, Buffer.from(arB64, "base64"));
+  }
   report.cacheKeys = await page.evaluate(() => caches.keys());
   report.errors = errors;
   console.log(JSON.stringify(report, null, 2));

@@ -11,28 +11,31 @@
 }
 
 :root {
-  /* 深色（AR 主畫面） */
-  --bg: #16110a;
-  --bg-soft: #241c0f;
-  --glass: rgba(22, 17, 10, 0.62);
-  --glass-strong: rgba(22, 17, 10, 0.9);
-  --glass-border: rgba(212, 178, 106, 0.32);
-  --glass-line: rgba(240, 228, 198, 0.16);
+  /* 深藍霓虹（AR 主畫面） */
+  --bg: #040a1a;
+  --bg-soft: #08142e;
+  --glass: rgba(5, 16, 42, 0.58);
+  --glass-strong: rgba(4, 12, 32, 0.93);
+  --glass-border: rgba(96, 205, 255, 0.4);
+  --glass-line: rgba(170, 228, 255, 0.2);
+  --neon: #6fdcff;
+  --neon-soft: #9fe8ff;
+  --neon-deep: #2f7dff;
 
-  /* 米色（面板） */
-  --c-cream: #f6f1e7;
-  --c-ink: #3d3423;
-  --c-ink-soft: #6b5f45;
-  --c-gold: #b08d4f;
-  --c-gold-bright: #e3c982;
-  --c-line: #c9b98f;
+  /* 米色（保留給表單輸入） */
+  --c-cream: #eaf8ff;
+  --c-ink: #0b2342;
+  --c-ink-soft: #4a6a8c;
+  --c-gold: #3fb8ff;
+  --c-gold-bright: #8fe6ff;
+  --c-line: #6fb7dc;
 
-  /* 吉凶：柔綠／柔紅／待確認淡金（規格 8） */
-  --good: #7eb276;
-  --good-deep: #2b6a33;
-  --bad: #cb6c5c;
-  --bad-deep: #a3342a;
-  --pending: #d4b26a;
+  /* 吉凶：吉＝亮青、凶＝靛藍＋暖色邊光、待確認＝淡青 */
+  --good: #62d6ff;
+  --good-deep: #0d7fb4;
+  --bad: #ff7a5c;
+  --bad-deep: #c8452a;
+  --pending: #9fe8ff;
 
   --font-serif: "BZ Serif", "Songti TC", "Noto Serif CJK TC", "PingFang TC", "Microsoft JhengHei", serif;
   --font-sans: "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", "Microsoft JhengHei", "Heiti TC", system-ui,
@@ -85,10 +88,11 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
 .btn:active { transform: scale(0.97); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn.primary {
-  background: linear-gradient(135deg, #c9a45c, #a4813f);
-  color: #1d160b;
-  border-color: #d9bb76;
+  background: linear-gradient(135deg, #67d9ff, #2f7dff);
+  color: #021428;
+  border-color: #9fe8ff;
   font-weight: 700;
+  box-shadow: 0 0 18px rgba(90, 200, 255, 0.35);
 }
 .btn.primary:hover { filter: brightness(1.06); }
 .btn.danger { color: #efb6ac; border-color: rgba(203, 108, 92, 0.4); }
@@ -103,7 +107,7 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   width: 44px; height: 44px;
   border: 1px solid var(--glass-border);
   border-radius: 50%;
-  background: rgba(22, 17, 10, 0.45);
+  background: rgba(5, 14, 36, 0.45);
   color: var(--c-cream);
   backdrop-filter: blur(10px);
 }
@@ -115,14 +119,14 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   min-height: 30px; padding: 4px 10px;
   border: 1px solid var(--glass-line);
   border-radius: 999px;
-  background: rgba(22, 17, 10, 0.5);
+  background: rgba(5, 14, 36, 0.5);
   color: var(--c-cream);
   font-size: 11px; font-weight: 600; white-space: nowrap;
   backdrop-filter: blur(8px);
 }
-.chip.good { color: #bde8b4; border-color: rgba(126, 178, 118, 0.5); background: rgba(43, 106, 51, 0.32); }
-.chip.warn { color: #f1d99c; border-color: rgba(212, 178, 106, 0.5); background: rgba(138, 109, 31, 0.3); }
-.chip.bad { color: #f0b6ad; border-color: rgba(203, 108, 92, 0.5); background: rgba(163, 52, 42, 0.3); }
+.chip.good { color: #b8f0ff; border-color: rgba(98, 214, 255, 0.55); background: rgba(20, 110, 170, 0.32); }
+.chip.warn { color: #ffe2b8; border-color: rgba(255, 190, 110, 0.5); background: rgba(150, 90, 20, 0.3); }
+.chip.bad { color: #ffc0b0; border-color: rgba(255, 122, 92, 0.55); background: rgba(170, 52, 30, 0.3); }
 .chip-btn { min-height: 44px; } /* 觸控區 ≥44px（視覺仍為小膠囊） */
 
 /* ---------- 玻璃／表單 ---------- */
@@ -139,26 +143,26 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
 .field label { font-size: 12px; color: var(--c-ink-soft); font-weight: 600; }
 .field input, .field select {
   min-height: 44px; padding: 8px 12px;
-  border: 1px solid rgba(176, 141, 79, 0.4);
+  border: 1px solid rgba(70, 160, 220, 0.4);
   border-radius: 10px;
   background: rgba(255, 253, 248, 0.9);
   color: var(--c-ink);
   font-size: 16px; /* iOS 避免自動縮放 */
   outline: none;
 }
-.field input:focus, .field select:focus { border-color: var(--c-gold); box-shadow: 0 0 0 2px rgba(176, 141, 79, 0.2); }
+.field input:focus, .field select:focus { border-color: var(--c-gold); box-shadow: 0 0 0 2px rgba(70, 160, 220, 0.2); }
 
 .hint { font-size: 12px; line-height: 1.6; color: var(--c-ink-soft); margin: 10px 0; }
 .form-err { font-size: 12px; color: var(--bad-deep); background: rgba(203, 108, 92, 0.12); padding: 8px 10px; border-radius: 8px; margin: 8px 0; }
 .warn-line { font-size: 12px; color: #e8c98c; margin: 6px 0; line-height: 1.5; }
 .segmented {
   display: flex; gap: 4px; padding: 4px;
-  border: 1px solid rgba(176, 141, 79, 0.35); border-radius: 12px;
+  border: 1px solid rgba(70, 160, 220, 0.35); border-radius: 12px;
   background: rgba(255, 253, 248, 0.6);
 }
 .segmented button { flex: 1; min-height: 40px; border: 0; border-radius: 9px; background: transparent; color: var(--c-ink-soft); font-weight: 600; }
 .segmented button.on { background: #fffdf8; color: var(--c-ink); box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
-.switch-row { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid rgba(176,141,79,0.3); border-radius: 12px; background: rgba(255,253,248,0.55); cursor: pointer; }
+.switch-row { display: flex; gap: 12px; align-items: flex-start; padding: 12px; border: 1px solid rgba(70,160,220,0.3); border-radius: 12px; background: rgba(255,253,248,0.55); cursor: pointer; }
 .switch-row input { width: 22px; height: 22px; margin-top: 2px; accent-color: var(--c-gold); }
 .switch-row b { display: block; font-size: 14px; color: var(--c-ink); }
 .switch-row small { display: block; font-size: 12px; line-height: 1.5; color: var(--c-ink-soft); margin-top: 3px; }
@@ -170,7 +174,7 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   transform: translateX(-50%);
   max-width: min(92vw, 440px);
   padding: 12px 18px;
-  background: rgba(22, 17, 10, 0.94);
+  background: rgba(5, 14, 36, 0.94);
   border: 1px solid var(--glass-border);
   border-radius: 999px;
   color: var(--c-cream);

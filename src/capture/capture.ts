@@ -51,13 +51,18 @@ export interface CaptureInfo {
   tone: "good" | "bad" | "none";
 }
 
-/** 與畫面一致的暗角調色（Safari 不支援 ctx.filter，改用疊色） */
+/** 與畫面一致的冷暗藍調與暗角（Safari 不支援 ctx.filter，改用疊色） */
 function drawGrade(ctx: CanvasRenderingContext2D, W: number, H: number): void {
-  ctx.fillStyle = "rgba(10,7,3,0.14)";
+  ctx.save();
+  ctx.globalCompositeOperation = "multiply";
+  ctx.fillStyle = "rgb(120,165,235)";
   ctx.fillRect(0, 0, W, H);
-  const g = ctx.createRadialGradient(W / 2, H * 0.5, Math.min(W, H) * 0.35, W / 2, H * 0.5, Math.hypot(W, H) * 0.62);
-  g.addColorStop(0, "rgba(10,7,3,0)");
-  g.addColorStop(1, "rgba(10,7,3,0.55)");
+  ctx.restore();
+  ctx.fillStyle = "rgba(2,8,28,0.3)";
+  ctx.fillRect(0, 0, W, H);
+  const g = ctx.createRadialGradient(W / 2, H * 0.5, Math.min(W, H) * 0.3, W / 2, H * 0.5, Math.hypot(W, H) * 0.6);
+  g.addColorStop(0, "rgba(2,8,28,0)");
+  g.addColorStop(1, "rgba(2,8,28,0.62)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 }
@@ -77,31 +82,34 @@ function drawInfoCard(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement, 
   const cardY = H - m - cardH;
 
   roundRect(ctx, cardX, cardY, cardW, cardH, W * 0.03);
-  ctx.fillStyle = "rgba(250,245,232,0.93)";
+  ctx.fillStyle = "rgba(4,14,36,0.86)";
   ctx.fill();
-  ctx.lineWidth = Math.max(1, W * 0.0025);
-  ctx.strokeStyle = "rgba(201,164,92,0.85)";
+  ctx.lineWidth = Math.max(1.5, W * 0.003);
+  ctx.strokeStyle = "rgba(111,220,255,0.75)";
   ctx.stroke();
 
   ctx.textBaseline = "top";
   ctx.textAlign = "left";
   let y = cardY + pad;
-  ctx.fillStyle = "#5a4d33";
+  ctx.fillStyle = "#a8dcf2";
   ctx.font = `700 ${fsHead}px ${SANS}`;
   ctx.fillText(info.headline, cardX + pad, y, cardW - pad * 2);
   y += fsHead * 1.25;
 
-  ctx.fillStyle = info.tone === "good" ? "#2b6a33" : info.tone === "bad" ? "#a3342a" : "#6b5d3f";
+  ctx.fillStyle = info.tone === "good" ? "#9fe8ff" : info.tone === "bad" ? "#ff9f86" : "#cfe8f5";
+  ctx.shadowColor = info.tone === "bad" ? "rgba(255,122,92,0.7)" : "rgba(70,205,255,0.7)";
+  ctx.shadowBlur = W * 0.012;
   ctx.font = `700 ${fsMain}px ${serif}`;
   ctx.fillText(info.main, cardX + pad, y, cardW - pad * 2);
+  ctx.shadowBlur = 0;
   y += fsMain * 1.35;
 
-  ctx.fillStyle = "#6b5d3f";
+  ctx.fillStyle = "#8fb8d0";
   ctx.font = `600 ${fsMeta}px ${SANS}`;
   ctx.fillText(info.meta, cardX + pad, y, cardW - pad * 2);
   if (info.warn) {
     y += fsMeta * 1.5;
-    ctx.fillStyle = "#9a5a08";
+    ctx.fillStyle = "#ffd9a0";
     ctx.fillText(info.warn, cardX + pad, y, cardW - pad * 2);
   }
 }
@@ -137,7 +145,7 @@ export async function capturePair(
   if (!arCtx) throw new Error("無法建立畫布（可能記憶體不足）");
   arCtx.drawImage(frame, 0, 0);
   drawGrade(arCtx, arCanvas.width, arCanvas.height);
-  if (overlay) drawVR(arCtx, arCanvas.width, arCanvas.height, { ...overlay, appear: 1 });
+  if (overlay) drawVR(arCtx, arCanvas.width, arCanvas.height, { ...overlay, appear: 1, fx: 0 });
   drawInfoCard(arCtx, arCanvas, info, serif);
 
   const [raw, ar] = await Promise.all([canvasToBlob(rawCanvas, 0.9), canvasToBlob(arCanvas, 0.88)]);

@@ -352,6 +352,7 @@ export function ARScreen(p: ARScreenProps) {
   return (
     <div className="scene" ref={hostRef}>
       <div className="scene-media" />
+      <div className="scene-tint" />
       <div className="scene-vignette" />
       <div className="scene-scrim top" />
       <div className="scene-scrim bottom" />
