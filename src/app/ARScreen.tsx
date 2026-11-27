@@ -115,7 +115,7 @@ export function ARScreen(p: ARScreenProps) {
 
   useEffect(() => {
     const host = hostRef.current;
-    if (!host || sensorBlocked) return;
+    if (!host || stopped) return;
     const scene = new VRScene(host, {
       onTapSector: (deg) => {
         if (!appSheetOpenRef.current) setSector(deg);
@@ -132,15 +132,17 @@ export function ARScreen(p: ARScreenProps) {
       scene.dispose();
       sceneRef.current = null;
     };
-    // 只在感測可用性改變時重建場景
+    // 進入／離開「AR 暫停」時重建場景（AR 與停止畫面是不同的 DOM 節點）
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sensorBlocked]);
+  }, [stopped]);
 
   // 每次 render 把最新方位與設定送進場景（成本低）
+  // 調暗只在方位資料真的不可靠時：朝下看圓心時感測引擎會標「朝向不穩」，但盤面方向仍可信，不調暗
+  const sceneDim = !sensorLive || (hs.quality === "uncertain" && !hs.tiltDegraded);
   useEffect(() => {
     sceneRef.current?.setInput({
       heading: viewHeading,
-      dim: !trusted,
+      dim: sceneDim,
       wheel: p.wheel,
       fovLongDeg: p.settings.fovLongDeg,
       selectedSector: sector,
@@ -302,13 +304,13 @@ export function ARScreen(p: ARScreenProps) {
       camera: camBlock ?? undefined,
     };
     return (
-      <div className="scene scene-stopped">
+      <div key="stopped" className="scene scene-stopped">
         <ARStopped
           reasons={reasons}
           retrying={retrying}
           onRetryCamera={() => {
+            // 解除暫停後，場景 effect 會重建並重新啟動相機
             setCamBlock(null);
-            void startCam();
           }}
           onRetrySensor={async () => {
             setRetrying(true);
@@ -337,7 +339,7 @@ export function ARScreen(p: ARScreenProps) {
   })();
 
   const hint = hs.tiltDegraded
-    ? "方位已暫停，拿正手機即可恢復。"
+    ? "朝下看時方位數字暫停更新，盤面照常；拿正手機即可恢復。"
     : !sensorLive
       ? "等待方向感測資料…請拿起手機，輕輕轉動一下。"
       : hs.semantic === "relative-euler"
@@ -350,9 +352,10 @@ export function ARScreen(p: ARScreenProps) {
   const selPalace = sector !== null ? PALACES.find((x) => x.deg === sector) ?? null : null;
 
   return (
-    <div className="scene" ref={hostRef}>
+    <div key="ar" className="scene" ref={hostRef}>
       <div className="scene-media" />
       <div className="scene-tint" />
+      <div className="scene-haze" />
       <div className="scene-vignette" />
       <div className="scene-scrim top" />
       <div className="scene-scrim bottom" />

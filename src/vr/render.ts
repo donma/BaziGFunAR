@@ -11,20 +11,22 @@
  * 誠實：地板是「假設手機離地 1.4 公尺」的虛擬平面，不是偵測到的真實地板。
  */
 import { PALACES, STARS, isGoodStar, type DirectionDeg, type StarKey } from "../domain/bazhai/bazhai";
+import { KUA_NUMERAL, KUA_TABLE } from "../domain/bazhai/mingGua";
 import { shortestAngleDiff } from "../domain/compass/heading";
 import { clipNear, dirVector, focalPx, toCamera, worldPoint, type Basis, type Vec3 } from "./math";
 import { drawGlyph, drawGlyphPx, glyph, type Tone } from "./glyphs";
-import { ringBranches, ringMountains } from "./rings";
+import { ringBranches, ringMountains, ringSolarTerms } from "./rings";
+import { STAR_SHORT } from "../app/starText";
 
 export const CAM_HEIGHT = 1.4;
 export const R_IN = 0.9;
 export const R_OUT = 3.55;
 const NEAR = 0.05;
 
-const CORE = [232, 251, 255];
-const CYAN = [70, 205, 255];
-const BLUE = [40, 120, 255];
-const INDIGO = [86, 96, 240];
+const CORE = [222, 236, 255];
+const CYAN = [84, 152, 255];
+const BLUE = [38, 98, 255];
+const INDIGO = [104, 84, 242];
 const WARM = [255, 122, 92];
 
 const rgba = (c: number[], a: number): string => `rgba(${c[0]},${c[1]},${c[2]},${Math.max(0, Math.min(1, a))})`;
@@ -129,7 +131,7 @@ export function drawVR(ctx: CanvasRenderingContext2D, W: number, H: number, s: R
     return d < 50 ? (1 - d / 50) * 0.6 : 0;
   };
 
-  /** 在地板上沿徑向擺字（背對的扇區自動翻轉 180°，從你的視角永遠是正的） */
+  /** 在地板上沿徑向擺字（背對的扇區自動翻轉 180°，從你的視角永遠是正的）；dt＝沿切線方向偏移（公尺） */
   const placeText = (
     az: number,
     r: number,
@@ -138,20 +140,23 @@ export function drawVR(ctx: CanvasRenderingContext2D, W: number, H: number, s: R
     tone: Tone,
     alpha: number,
     maxPx: number,
+    dt = 0,
+    useFade = true,
   ): void => {
-    const o = worldPoint(az, r, gy);
-    if (depthOf(o) < NEAR) return;
     const ang = (az * Math.PI) / 180;
     const flip = Math.abs(shortestAngleDiff(az, s.facingAz)) > 90;
     const sg = flip ? -1 : 1;
     const e1: P2 = [Math.cos(ang) * sg, -Math.sin(ang) * sg];
     const e2: P2 = [Math.sin(ang) * sg, Math.cos(ang) * sg];
+    const base = worldPoint(az, r, gy);
+    const o: Vec3 = [base[0] + e1[0] * dt, gy, base[2] - e1[1] * dt];
+    if (depthOf(o) < NEAR) return;
     ctx.save();
     const ft = floorTransform(o, e1, e2);
     if (ft && inView(ft)) {
       const sc = fitScale(ft.scale, size * 1.3, maxPx);
       ctx.scale(sc, sc);
-      const a = alpha * bottomFade(ft.y) * ignite(r) * dimMul;
+      const a = alpha * (useFade ? bottomFade(ft.y) : 1) * ignite(r) * dimMul;
       if (a > 0.01) {
         ctx.globalAlpha *= clamp01(a);
         const chars = [...text];
@@ -238,27 +243,36 @@ export function drawVR(ctx: CanvasRenderingContext2D, W: number, H: number, s: R
     ctx.stroke();
     ctx.setLineDash([]);
   };
-  // 八角幾何：外八角＋{8/3} 星形，連到扇區交界
+  // 八角幾何：多層八角形＋{8/3} 星形，像寶石切面的地板
   {
-    const V: Vec3[] = [];
-    for (let i = 0; i < 8; i++) V.push(worldPoint(22.5 + 45 * i, R_OUT - 0.02, gy));
-    ctx.beginPath();
-    for (let i = 0; i < 8; i++) {
-      const a = proj(V[i]);
-      const c2 = proj(V[(i + 1) % 8]);
-      if (a && c2) {
-        ctx.moveTo(a[0], a[1]);
-        ctx.lineTo(c2[0], c2[1]);
+    const octagon = (R: number, alpha: number, star: boolean): void => {
+      const V: Vec3[] = [];
+      for (let i = 0; i < 8; i++) V.push(worldPoint(22.5 + 45 * i, R, gy));
+      ctx.beginPath();
+      for (let i = 0; i < 8; i++) {
+        const a = proj(V[i]);
+        const c2 = proj(V[(i + 1) % 8]);
+        if (a && c2) {
+          ctx.moveTo(a[0], a[1]);
+          ctx.lineTo(c2[0], c2[1]);
+        }
+        if (star) {
+          const d = proj(V[(i + 3) % 8]);
+          if (a && d) {
+            ctx.moveTo(a[0], a[1]);
+            ctx.lineTo(d[0], d[1]);
+          }
+        }
       }
-      const d = proj(V[(i + 3) % 8]);
-      if (a && d) {
-        ctx.moveTo(a[0], a[1]);
-        ctx.lineTo(d[0], d[1]);
-      }
-    }
-    ctx.lineWidth = 0.9 * k;
-    ctx.strokeStyle = rgba(CYAN, 0.2 * dimMul * ap);
-    ctx.stroke();
+      ctx.lineWidth = 1 * k;
+      ctx.strokeStyle = rgba(CYAN, alpha * dimMul * ap * ignite(R));
+      ctx.stroke();
+    };
+    octagon(R_OUT - 0.02, 0.3, true);
+    octagon(3.1, 0.22, false);
+    octagon(2.65, 0.28, true);
+    octagon(1.55, 0.26, true);
+    octagon(1.0, 0.22, false);
     // 每 15° 的細分割線
     ctx.beginPath();
     for (let a = 0; a < 360; a += 15) {
@@ -271,7 +285,7 @@ export function drawVR(ctx: CanvasRenderingContext2D, W: number, H: number, s: R
       }
     }
     ctx.lineWidth = 0.7 * k;
-    ctx.strokeStyle = rgba(CYAN, 0.12 * dimMul * ap);
+    ctx.strokeStyle = rgba(CYAN, 0.14 * dimMul * ap);
     ctx.stroke();
   }
   // 外圈三層疊加
@@ -285,6 +299,8 @@ export function drawVR(ctx: CanvasRenderingContext2D, W: number, H: number, s: R
   ring(1.55, 0.7, 0.3);
   ring(2.65, 0.8, 0.34);
   ring(3.1, 0.8, 0.34);
+  ring(R_OUT + 0.85, 0.8, 0.3);
+  ring(R_OUT + 0.17, 0.6, 0.25);
   // 刻度：每 5° 一格，15° 較長，45° 最長
   ctx.beginPath();
   for (let a = 0; a < 360; a += 5) {
@@ -344,17 +360,22 @@ export function drawVR(ctx: CanvasRenderingContext2D, W: number, H: number, s: R
   }
   ctx.restore();
 
-  /* ---------- 4. 四圈文字（預烘焙發光貼圖） ---------- */
+  /* ---------- 4. 多圈文字（預烘焙發光貼圖；由內而外：卦名、五行洛書、方位吉凶、星名、星意、地支、二十四山、二十四節氣） ---------- */
   ctx.save();
   ctx.globalCompositeOperation = "lighter";
-  // 二十四山（最外圈）
+  // 二十四節氣（最外圈，朝遠方看時可見）
+  for (const m of ringSolarTerms()) {
+    const major = m.deg % 45 === 0;
+    placeText(m.deg, 4.12, m.ch, 13, major ? "cyan" : "dim", (major ? 0.85 : 0.6) + sweepAt(m.deg) * 0.4, 36);
+  }
+  // 二十四山
   for (const m of ringMountains()) {
     const isGua = m.deg % 45 === 0;
     placeText(m.deg, 3.33, m.ch, 14, isGua ? "cyan" : "dim", (isGua ? 0.9 : 0.7) + sweepAt(m.deg) * 0.5, 40);
   }
   // 十二地支
   for (const m of ringBranches()) placeText(m.deg, 2.88, m.ch, 17, "cyan", 0.78 + sweepAt(m.deg) * 0.6, 50);
-  // 八星名＋方位＋吉凶，卦名
+  // 八星名＋星意＋方位吉凶＋五行洛書＋卦名
   for (const p of PALACES) {
     const c = p.deg;
     const star = s.wheel?.[c];
@@ -362,58 +383,116 @@ export function drawVR(ctx: CanvasRenderingContext2D, W: number, H: number, s: R
     const good = isGoodStar(star);
     const gl = s.glow[c] ?? 0;
     const sw = sweepAt(c);
-    placeText(c, 2.05, STARS[star].name, 34 + 4 * gl, good ? "cyan" : "indigo", 0.88 + 0.12 * gl + sw * 0.4, 110);
-    placeText(c, 2.42, good ? "吉" : "凶", 15, good ? "cyan" : "warm", 0.9 + sw * 0.3, 46);
-    placeText(c, 1.72, `${p.branch}方`, 13, "dim", 0.8, 40);
-    placeText(c, 1.22, p.name, 26, good ? "cyan" : "indigo", 0.85 + 0.15 * gl + sw * 0.4, 64);
+    const kua = Object.values(KUA_TABLE).find((x) => x.name === p.name);
+    placeText(c, 2.0, STARS[star].name, 34 + 4 * gl, good ? "cyan" : "indigo", 0.9 + 0.1 * gl + sw * 0.4, 110);
+    placeText(c, 2.4, STAR_SHORT[star], 10.5, "dim", 0.8 + sw * 0.3, 34);
+    placeText(c, 1.7, `${p.branch}方`, 13, "dim", 0.82, 40, -0.2);
+    placeText(c, 1.7, good ? "吉" : "凶", 16, good ? "cyan" : "warm", 0.95 + sw * 0.3, 46, 0.32);
+    if (kua) placeText(c, 1.45, `${kua.element}${KUA_NUMERAL[kua.kua]}`, 12, "dim", 0.78, 36);
+    placeText(c, 1.18, p.name, 26, good ? "cyan" : "indigo", 0.88 + 0.12 * gl + sw * 0.4, 64);
   }
   ctx.restore();
 
-  /* ---------- 5. 中央太極＋外圈卦象＋正北標記 ---------- */
-  ctx.save();
+  /* ---------- 5. 正下方：填滿圓心的藍色光暈大八卦（每個元件都用真實透視投影） ---------- */
   {
-    const ft = floorTransform(worldPoint(0, 0.0001, gy), [1, 0], [0, 1]);
-    if (ft) {
-      const sc = fitScale(ft.scale, 70, 46);
-      ctx.scale(sc, sc);
-      ctx.globalAlpha *= 0.85 * dimMul * Math.max(0.25, bottomFade(ft.y) + 0.25) * ap;
-      const R = 34;
-      const dark = "rgba(4,16,52,0.94)";
-      const light = rgba(CORE, 0.95);
-      ctx.fillStyle = dark;
+    const lw = (e: number, n: number): Vec3 => [e, gy, -n]; // 本地（東,北；公尺）→ 世界
+    const circ = (ce: number, cn: number, r: number, n = 44): Vec3[] => {
+      const pts: Vec3[] = [];
+      for (let i = 0; i < n; i++) {
+        const a = (i / n) * Math.PI * 2;
+        pts.push(lw(ce + r * Math.sin(a), cn + r * Math.cos(a)));
+      }
+      return pts;
+    };
+    const fillPoly = (pts: Vec3[], style: string): void => {
+      const poly = projPoly(pts);
+      if (!poly) return;
       ctx.beginPath();
-      ctx.arc(0, 0, R, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = light;
-      ctx.beginPath();
-      ctx.arc(0, 0, R, -Math.PI / 2, Math.PI / 2);
+      poly.forEach((q, i) => (i === 0 ? ctx.moveTo(q[0], q[1]) : ctx.lineTo(q[0], q[1])));
       ctx.closePath();
+      ctx.fillStyle = style;
       ctx.fill();
-      ctx.fillStyle = dark;
-      ctx.beginPath();
-      ctx.arc(0, -R / 2, R / 2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = light;
-      ctx.beginPath();
-      ctx.arc(0, R / 2, R / 2, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = light;
-      ctx.beginPath();
-      ctx.arc(0, -R / 2, R / 9, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.fillStyle = dark;
-      ctx.beginPath();
-      ctx.arc(0, R / 2, R / 9, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.shadowColor = rgba(CYAN, 0.9);
-      ctx.shadowBlur = 8 * k;
-      ctx.strokeStyle = rgba(CYAN, 0.95);
-      ctx.beginPath();
-      ctx.arc(0, 0, R, 0, Math.PI * 2);
-      ctx.stroke();
+    };
+    /** 極座標＋切線偏移：az 方位、r 半徑、t 沿順時針切線的偏移 */
+    const polar = (az: number, r: number, t: number): Vec3 => {
+      const a = (az * Math.PI) / 180;
+      return lw(r * Math.sin(a) + t * Math.cos(a), r * Math.cos(a) - t * Math.sin(a));
+    };
+    const a5 = dimMul * ap;
+
+    // 玻璃底：同心層疊出由外向內加深的藍色漸層，填滿圓心空白
+    fillPoly(circ(0, 0, 0.88), `rgba(24,96,200,${0.2 * a5})`);
+    fillPoly(circ(0, 0, 0.66), `rgba(10,50,140,${0.22 * a5})`);
+    fillPoly(circ(0, 0, 0.46), `rgba(4,22,70,${0.4 * a5})`);
+
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    // 同心光環
+    ring(0.87, 9, 0.14, undefined, BLUE);
+    ring(0.87, 3, 0.8, undefined, CORE);
+    ring(0.52, 1.8, 0.75, undefined, CORE);
+    ring(0.44, 1, 0.4);
+    // 八卦環的分隔線
+    ctx.beginPath();
+    for (let i = 0; i < 8; i++) {
+      const p0 = proj(polar(22.5 + 45 * i, 0.52, 0));
+      const p1 = proj(polar(22.5 + 45 * i, 0.78, 0));
+      if (p0 && p1) {
+        ctx.moveTo(p0[0], p0[1]);
+        ctx.lineTo(p1[0], p1[1]);
+      }
     }
+    ctx.lineWidth = 1 * k;
+    ctx.strokeStyle = rgba(CYAN, 0.45 * a5);
+    ctx.stroke();
+    // 八個卦象（後天八卦方位；最內側為初爻）
+    for (const p of PALACES) {
+      const lit = s.glow[p.deg] ?? 0;
+      ctx.shadowColor = rgba(CYAN, 0.95);
+      ctx.shadowBlur = (7 + 9 * lit) * k;
+      for (let i = 0; i < 3; i++) {
+        const r = 0.65 + (i - 1) * 0.09;
+        const h = 0.027;
+        const segs: Array<[number, number]> = p.lines[i] ? [[-0.16, 0.16]] : [[-0.16, -0.03], [0.03, 0.16]];
+        for (const [t0, t1] of segs) {
+          fillPoly([polar(p.deg, r - h, t0), polar(p.deg, r - h, t1), polar(p.deg, r + h, t1), polar(p.deg, r + h, t0)], rgba([176, 208, 255], (0.72 + 0.26 * lit) * a5));
+        }
+      }
+    }
+    ctx.restore();
+
+    // 中央太極
+    const R = 0.36;
+    fillPoly(circ(0, 0, R), `rgba(4,16,52,${0.95 * a5})`);
+    const half: Vec3[] = [];
+    for (let i = 0; i <= 28; i++) {
+      const th = -Math.PI / 2 + (i / 28) * Math.PI;
+      half.push(lw(R * Math.cos(th), -R * Math.sin(th)));
+    }
+    fillPoly(half, rgba(CORE, 0.96 * a5));
+    fillPoly(circ(0, R / 2, R / 2, 32), `rgba(4,16,52,${0.95 * a5})`);
+    fillPoly(circ(0, -R / 2, R / 2, 32), rgba(CORE, 0.96 * a5));
+    fillPoly(circ(0, R / 2, R / 9, 20), rgba(CORE, 0.96 * a5));
+    fillPoly(circ(0, -R / 2, R / 9, 20), `rgba(4,16,52,${0.95 * a5})`);
+    ctx.save();
+    ctx.globalCompositeOperation = "lighter";
+    ctx.lineWidth = 2.4 * k;
+    ctx.shadowColor = rgba(CYAN, 0.95);
+    ctx.shadowBlur = 12 * k;
+    ctx.strokeStyle = rgba(CYAN, 0.95 * a5);
+    const outline = circ(0, 0, R, 48);
+    outline.push(outline[0]);
+    ctx.beginPath();
+    pathWorld(outline);
+    ctx.stroke();
+    ctx.restore();
   }
+
+  // 圓心大八卦內的小字圈（畫在中心玻璃與卦象之上）：太極外圍的卦名、八卦環外緣的二十四山
+  ctx.save();
+  ctx.globalCompositeOperation = "lighter";
+  for (const p of PALACES) placeText(p.deg, 0.445, p.name, 11, "cyan", 0.9, 44, 0, false);
+  for (const m of ringMountains()) placeText(m.deg, 0.815, m.ch, 7.5, "dim", 0.8, 30, 0, false);
   ctx.restore();
 
   for (const p of PALACES) {
@@ -426,7 +505,7 @@ export function drawVR(ctx: CanvasRenderingContext2D, W: number, H: number, s: R
     const sg = flip ? -1 : 1;
     const e1: P2 = [Math.cos(ang) * sg, -Math.sin(ang) * sg];
     const e2: P2 = [Math.sin(ang) * sg, Math.cos(ang) * sg];
-    const og = worldPoint(c, R_OUT + 0.66, gy);
+    const og = worldPoint(c, R_OUT + 1.15, gy);
     if (depthOf(og) < NEAR) continue;
     ctx.save();
     const ft = floorTransform(og, e1, e2);
@@ -452,7 +531,7 @@ export function drawVR(ctx: CanvasRenderingContext2D, W: number, H: number, s: R
 
   // 正北標記
   {
-    const o = worldPoint(0, R_OUT + 1.3, gy);
+    const o = worldPoint(0, R_OUT + 1.75, gy);
     if (depthOf(o) > NEAR) {
       ctx.save();
       const ft = floorTransform(o, [1, 0], [0, 1]);
@@ -606,3 +685,4 @@ export function drawVR(ctx: CanvasRenderingContext2D, W: number, H: number, s: R
 
   ctx.restore();
 }
+

@@ -9,6 +9,7 @@
  */
 import { chromium } from "playwright-core";
 import { mkdirSync } from "node:fs";
+import { fakeCameraFile } from "./lib/test-browser.mjs";
 
 const URL = process.env.SMOKE_URL ?? "http://localhost:4173/BaziGFunAR/";
 const OUT = "scripts/.cache";
@@ -20,6 +21,8 @@ const browser = await chromium.launch({
   args: [
     "--use-fake-ui-for-media-stream",
     "--use-fake-device-for-media-stream",
+    // 以影片檔當假相機：不會像內建測試圖那樣自行結束串流，畫面也像真實房間
+    `--use-file-for-fake-video-capture=${fakeCameraFile()}`,
     "--autoplay-policy=no-user-gesture-required",
     "--no-sandbox",
   ],
@@ -118,6 +121,17 @@ try {
   report.headingLevel = await page.locator(".heading-deg").textContent();
   report.paintedLevel = await paintedPixels();
   await page.screenshot({ path: `${OUT}/vr-level.png` });
+
+  // 幾乎垂直往下看：圓心的大八卦
+  await pose(45, 14, 0, 1500);
+  await ensureCam();
+  report.centerPainted = await paintedPixels();
+  await page.screenshot({ path: `${OUT}/vr-center.png` });
+
+  // 中等俯角（約 60°）：檢查大八卦的透視
+  await pose(45, 30, 0, 1200);
+  await ensureCam();
+  await page.screenshot({ path: `${OUT}/vr-mid.png` });
 
   // 轉向東南（alpha=225 → 朝 135°）低頭，換另一個扇區
   await pose(225, 55, 0, 1400);

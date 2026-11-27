@@ -7,6 +7,7 @@
  * 座標對齊：盤面以畫布寬高投影（與螢幕 cover 裁切同比例），所以合成照的盤面與拍照當下畫面一致。
  */
 import { drawVR, type RenderState } from "../vr/render";
+import { Bloom } from "../vr/bloom";
 
 const SANS = `"PingFang TC","Noto Sans TC","Noto Sans CJK TC","Microsoft JhengHei",system-ui,sans-serif`;
 
@@ -55,14 +56,24 @@ export interface CaptureInfo {
 function drawGrade(ctx: CanvasRenderingContext2D, W: number, H: number): void {
   ctx.save();
   ctx.globalCompositeOperation = "multiply";
-  ctx.fillStyle = "rgb(120,165,235)";
+  ctx.fillStyle = "rgb(84,128,255)";
   ctx.fillRect(0, 0, W, H);
   ctx.restore();
-  ctx.fillStyle = "rgba(2,8,28,0.3)";
+  ctx.fillStyle = "rgba(2,6,30,0.34)";
   ctx.fillRect(0, 0, W, H);
+  // 地面藍光霧
+  ctx.save();
+  ctx.globalCompositeOperation = "screen";
+  const hz = ctx.createRadialGradient(W / 2, H * 0.78, 0, W / 2, H * 0.78, Math.max(W, H) * 0.6);
+  hz.addColorStop(0, "rgba(40,100,255,0.34)");
+  hz.addColorStop(0.45, "rgba(10,40,180,0.12)");
+  hz.addColorStop(1, "rgba(0,8,60,0)");
+  ctx.fillStyle = hz;
+  ctx.fillRect(0, 0, W, H);
+  ctx.restore();
   const g = ctx.createRadialGradient(W / 2, H * 0.5, Math.min(W, H) * 0.3, W / 2, H * 0.5, Math.hypot(W, H) * 0.6);
-  g.addColorStop(0, "rgba(2,8,28,0)");
-  g.addColorStop(1, "rgba(2,8,28,0.62)");
+  g.addColorStop(0, "rgba(2,6,30,0)");
+  g.addColorStop(1, "rgba(2,6,30,0.66)");
   ctx.fillStyle = g;
   ctx.fillRect(0, 0, W, H);
 }
@@ -145,7 +156,18 @@ export async function capturePair(
   if (!arCtx) throw new Error("無法建立畫布（可能記憶體不足）");
   arCtx.drawImage(frame, 0, 0);
   drawGrade(arCtx, arCanvas.width, arCanvas.height);
-  if (overlay) drawVR(arCtx, arCanvas.width, arCanvas.height, { ...overlay, appear: 1, fx: 0 });
+  if (overlay) {
+    // 盤面畫在獨立透明畫布上，加柔光擴散後再合成，避免把實景一起糊掉
+    const ov = document.createElement("canvas");
+    ov.width = arCanvas.width;
+    ov.height = arCanvas.height;
+    const ovCtx = ov.getContext("2d");
+    if (ovCtx) {
+      drawVR(ovCtx, ov.width, ov.height, { ...overlay, appear: 1, fx: 0 });
+      new Bloom().apply(ov, ovCtx, 0.55);
+      arCtx.drawImage(ov, 0, 0);
+    }
+  }
   drawInfoCard(arCtx, arCanvas, info, serif);
 
   const [raw, ar] = await Promise.all([canvasToBlob(rawCanvas, 0.9), canvasToBlob(arCanvas, 0.88)]);

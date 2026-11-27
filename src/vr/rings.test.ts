@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { BRANCHES_12, MOUNTAINS_24, ringBranches, ringMountains, ringTrigrams } from "./rings";
+import { BRANCHES_12, MOUNTAINS_24, SOLAR_TERMS_24, ringBranches, ringMountains, ringSolarTerms, ringTrigrams } from "./rings";
 
 describe("羅盤文字圈資料", () => {
   it("二十四山共 24 個、不重複、每 15°", () => {
@@ -36,5 +36,20 @@ describe("羅盤文字圈資料", () => {
   it("卦名對應後天八卦方位（坎北 艮東北 震東 巽東南 離南 坤西南 兌西 乾西北）", () => {
     const t = Object.fromEntries(ringTrigrams().map((x) => [x.ch, x.deg]));
     expect(t).toEqual({ 坎: 0, 艮: 45, 震: 90, 巽: 135, 離: 180, 坤: 225, 兌: 270, 乾: 315 });
+  });
+
+  it("二十四節氣共 24 個、不重複，錨點正確（冬至北、春分東、夏至南、秋分西；立春艮、立夏巽、立秋坤、立冬乾）", () => {
+    const s = ringSolarTerms();
+    expect(s).toHaveLength(24);
+    expect(new Set(SOLAR_TERMS_24).size).toBe(24);
+    const at = (deg: number) => s.find((x) => x.deg === deg)?.ch;
+    expect(at(0)).toBe("冬至");
+    expect(at(90)).toBe("春分");
+    expect(at(180)).toBe("夏至");
+    expect(at(270)).toBe("秋分");
+    expect(at(45)).toBe("立春");
+    expect(at(135)).toBe("立夏");
+    expect(at(225)).toBe("立秋");
+    expect(at(315)).toBe("立冬");
   });
 });

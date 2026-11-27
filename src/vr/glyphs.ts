@@ -4,15 +4,17 @@
  * 字體載入完成後需呼叫 invalidateGlyphs()，否則貼圖會烘進備用字體。
  */
 export const SERIF = `"BZ Serif","Songti TC","Noto Serif CJK TC","PingFang TC","Microsoft JhengHei",serif`;
+/** 盤面發光字：毛筆感楷體，缺字時退回宋體 */
+export const KAI = `"BZ Kai","Kaiti TC","STKaiti","BZ Serif","Songti TC","Noto Serif CJK TC","PingFang TC",serif`;
 export const SANS = `"PingFang TC","Noto Sans TC","Noto Sans CJK TC","Microsoft JhengHei",system-ui,sans-serif`;
 
 export type Tone = "cyan" | "indigo" | "warm" | "dim";
 
 const TONES: Record<Tone, { core: number[]; glow: number[] }> = {
-  cyan: { core: [236, 252, 255], glow: [64, 204, 255] },
-  indigo: { core: [206, 220, 255], glow: [92, 104, 255] },
-  warm: { core: [255, 234, 222], glow: [255, 124, 92] },
-  dim: { core: [160, 214, 240], glow: [40, 130, 215] },
+  cyan: { core: [226, 240, 255], glow: [64, 136, 255] },
+  indigo: { core: [208, 214, 255], glow: [112, 92, 255] },
+  warm: { core: [255, 236, 224], glow: [255, 124, 92] },
+  dim: { core: [158, 190, 245], glow: [40, 92, 214] },
 };
 
 /** 貼圖解析度：每「單位」幾個像素 */
@@ -36,7 +38,7 @@ export function glyph(ch: string, size: number, tone: Tone): Sprite {
   const key = `${ch}|${size}|${tone}`;
   const hit = cache.get(key);
   if (hit) return hit;
-  const units = size * 2;
+  const units = size * 2.4;
   const px = Math.ceil(units * S);
   const canvas = document.createElement("canvas");
   canvas.width = px;
@@ -46,9 +48,14 @@ export function glyph(ch: string, size: number, tone: Tone): Sprite {
     const t = TONES[tone];
     ctx.textAlign = "center";
     ctx.textBaseline = "middle";
-    ctx.font = `700 ${size * S}px ${SERIF}`;
+    ctx.font = `700 ${size * S}px ${KAI}`;
     const cx = px / 2;
     const cy = px / 2;
+    // 最外層超寬光暈（柔光擴散，像被藍光淹沒）
+    ctx.shadowColor = rgba(t.glow, 0.6);
+    ctx.fillStyle = rgba(t.glow, 0.4);
+    ctx.shadowBlur = size * S * 0.8;
+    ctx.fillText(ch, cx, cy);
     // 外層寬光暈
     ctx.shadowColor = rgba(t.glow, 0.95);
     ctx.fillStyle = rgba(t.glow, 0.9);
@@ -59,9 +66,13 @@ export function glyph(ch: string, size: number, tone: Tone): Sprite {
     ctx.shadowBlur = size * S * 0.22;
     ctx.fillStyle = rgba([(t.glow[0] + t.core[0]) / 2, (t.glow[1] + t.core[1]) / 2, (t.glow[2] + t.core[2]) / 2], 1);
     ctx.fillText(ch, cx, cy);
-    // 白熱字芯
+    // 白熱字芯（加一圈同色描邊讓筆畫更粗，像毛筆）
     ctx.shadowBlur = 0;
     ctx.fillStyle = rgba(t.core, 1);
+    ctx.strokeStyle = rgba(t.core, 1);
+    ctx.lineJoin = "round";
+    ctx.lineWidth = size * S * 0.05;
+    ctx.strokeText(ch, cx, cy);
     ctx.fillText(ch, cx, cy);
   }
   const sp: Sprite = { canvas, units };

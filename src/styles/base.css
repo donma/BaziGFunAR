@@ -10,32 +10,41 @@
   font-display: block;
 }
 
+/* 盤面發光字用的楷體（霞鶩文楷 TC 裁切，OFL）；宣告整個字重範圍以避免瀏覽器偽造粗體 */
+@font-face {
+  font-family: "BZ Kai";
+  src: url("../assets/fonts/bz-kai.woff2") format("woff2");
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: block;
+}
+
 :root {
   /* 深藍霓虹（AR 主畫面） */
-  --bg: #040a1a;
+  --bg: #030818;
   --bg-soft: #08142e;
   --glass: rgba(5, 16, 42, 0.58);
   --glass-strong: rgba(4, 12, 32, 0.93);
-  --glass-border: rgba(96, 205, 255, 0.4);
+  --glass-border: rgba(100, 160, 255, 0.4);
   --glass-line: rgba(170, 228, 255, 0.2);
-  --neon: #6fdcff;
-  --neon-soft: #9fe8ff;
-  --neon-deep: #2f7dff;
+  --neon: #78a8ff;
+  --neon-soft: #aac6ff;
+  --neon-deep: #3a64ff;
 
   /* 米色（保留給表單輸入） */
   --c-cream: #eaf8ff;
-  --c-ink: #0b2342;
-  --c-ink-soft: #4a6a8c;
+  --c-ink: #0b1a42;
+  --c-ink-soft: #4a5f9a;
   --c-gold: #3fb8ff;
-  --c-gold-bright: #8fe6ff;
+  --c-gold-bright: #9dbfff;
   --c-line: #6fb7dc;
 
   /* 吉凶：吉＝亮青、凶＝靛藍＋暖色邊光、待確認＝淡青 */
-  --good: #62d6ff;
-  --good-deep: #0d7fb4;
+  --good: #7aa6ff;
+  --good-deep: #2a5fd0;
   --bad: #ff7a5c;
   --bad-deep: #c8452a;
-  --pending: #9fe8ff;
+  --pending: #aac6ff;
 
   --font-serif: "BZ Serif", "Songti TC", "Noto Serif CJK TC", "PingFang TC", "Microsoft JhengHei", serif;
   --font-sans: "PingFang TC", "Noto Sans TC", "Noto Sans CJK TC", "Microsoft JhengHei", "Heiti TC", system-ui,
@@ -88,9 +97,9 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
 .btn:active { transform: scale(0.97); }
 .btn:disabled { opacity: 0.45; cursor: not-allowed; }
 .btn.primary {
-  background: linear-gradient(135deg, #67d9ff, #2f7dff);
+  background: linear-gradient(135deg, #78aaff, #3a64ff);
   color: #021428;
-  border-color: #9fe8ff;
+  border-color: #aac6ff;
   font-weight: 700;
   box-shadow: 0 0 18px rgba(90, 200, 255, 0.35);
 }
@@ -124,7 +133,7 @@ h1, h2, h3 { margin: 0; font-weight: 700; }
   font-size: 11px; font-weight: 600; white-space: nowrap;
   backdrop-filter: blur(8px);
 }
-.chip.good { color: #b8f0ff; border-color: rgba(98, 214, 255, 0.55); background: rgba(20, 110, 170, 0.32); }
+.chip.good { color: #c4d6ff; border-color: rgba(98, 214, 255, 0.55); background: rgba(20, 110, 170, 0.32); }
 .chip.warn { color: #ffe2b8; border-color: rgba(255, 190, 110, 0.5); background: rgba(150, 90, 20, 0.3); }
 .chip.bad { color: #ffc0b0; border-color: rgba(255, 122, 92, 0.55); background: rgba(170, 52, 30, 0.3); }
 .chip-btn { min-height: 44px; } /* 觸控區 ≥44px（視覺仍為小膠囊） */

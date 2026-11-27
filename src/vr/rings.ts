@@ -33,3 +33,17 @@ export function ringBranches(): RingGlyph[] {
 export function ringTrigrams(): Array<{ ch: string; deg: DirectionDeg }> {
   return PALACES.map((p) => ({ ch: p.name, deg: p.deg }));
 }
+
+/**
+ * 二十四節氣：依太陽黃經排在羅盤上，冬至在正北（子），每 15° 一氣順時針。
+ * 錨點：冬至 0°（子）、立春 45°（艮）、春分 90°（卯）、立夏 135°（巽）、夏至 180°（午）、
+ * 立秋 225°（坤）、秋分 270°（酉）、立冬 315°（乾）。這圈是羅盤的傳統圖案，僅作節氣意象。
+ */
+export const SOLAR_TERMS_24 = [
+  "冬至", "小寒", "大寒", "立春", "雨水", "驚蟄", "春分", "清明", "穀雨", "立夏", "小滿", "芒種",
+  "夏至", "小暑", "大暑", "立秋", "處暑", "白露", "秋分", "寒露", "霜降", "立冬", "小雪", "大雪",
+] as const;
+
+export function ringSolarTerms(): RingGlyph[] {
+  return SOLAR_TERMS_24.map((ch, i) => ({ ch, deg: i * 15 }));
+}

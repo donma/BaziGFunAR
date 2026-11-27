@@ -14,13 +14,19 @@
   width: 100%; height: 100%;
   object-fit: cover; display: block;
   /* 實景調色：略壓亮度與飽和，讓發光盤面浮出來（拍照合成以疊色近似同樣效果） */
-  filter: brightness(0.62) saturate(0.72) contrast(1.12) hue-rotate(6deg);
+  filter: brightness(0.56) saturate(0.7) contrast(1.12) hue-rotate(12deg);
 }
-/* 冷藍色調：讓霓虹字浮出來（拍照合成以疊色近似同樣效果） */
+/* 深藍色調：讓藍色霓虹字浮出來（拍照合成以疊色近似同樣效果） */
 .scene-tint {
   position: absolute; inset: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(to bottom, rgba(10, 44, 120, 0.42), rgba(4, 16, 52, 0.5));
+  background: linear-gradient(to bottom, rgba(8, 36, 150, 0.5), rgba(3, 12, 70, 0.58));
   mix-blend-mode: multiply;
+}
+/* 地面藍光霧：讓整片地板像被藍光淹沒 */
+.scene-haze {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 78%, rgba(40, 100, 255, 0.34), rgba(10, 40, 180, 0.12) 45%, rgba(0, 8, 60, 0) 72%);
+  mix-blend-mode: screen;
 }
 .scene-vignette {
   position: absolute; inset: 0; z-index: 2; pointer-events: none;
@@ -65,7 +71,7 @@
   backdrop-filter: blur(12px);
 }
 .heading-hud-main { display: flex; align-items: baseline; justify-content: center; gap: 8px; }
-.heading-deg { font-family: var(--font-serif); font-size: 26px; font-weight: 700; color: #eefbff; line-height: 1.15; text-shadow: 0 0 14px rgba(90, 210, 255, 0.85), 0 0 3px rgba(190, 240, 255, 0.9); }
+.heading-deg { font-family: var(--font-serif); font-size: 26px; font-weight: 700; color: #eef3ff; line-height: 1.15; text-shadow: 0 0 14px rgba(100, 160, 255, 0.85), 0 0 3px rgba(190, 240, 255, 0.9); }
 .heading-dir { font-size: 13px; color: var(--neon-soft); font-weight: 600; }
 .heading-hud-sub { font-size: 10px; color: rgba(246, 241, 231, 0.72); margin-top: 1px; }
 .top-gear { min-width: 44px; min-height: 44px; }
@@ -129,19 +135,19 @@
 .shutter-ring {
   display: grid; place-items: center;
   width: 76px; height: 76px; border-radius: 50%;
-  border: 3px solid #8fe6ff;
+  border: 3px solid #9dbfff;
   background: rgba(5, 14, 36, 0.5);
-  box-shadow: 0 0 0 4px rgba(111, 220, 255, 0.18), 0 0 26px rgba(111, 220, 255, 0.45), 0 6px 18px rgba(0,0,0,0.45);
+  box-shadow: 0 0 0 4px rgba(120, 170, 255, 0.18), 0 0 26px rgba(120, 170, 255, 0.45), 0 6px 18px rgba(0,0,0,0.45);
   backdrop-filter: blur(8px);
 }
-.shutter-core { width: 62px; height: 62px; border-radius: 50%; background: linear-gradient(145deg, #eafaff, #52c8ff); }
+.shutter-core { width: 62px; height: 62px; border-radius: 50%; background: linear-gradient(145deg, #eafaff, #5a8cff); }
 .shutter:active .shutter-core { transform: scale(0.92); }
 .shutter:disabled { opacity: 0.45; }
 .shutter.is-busy .shutter-core { opacity: 0.6; }
 .shutter-label { font-size: 11px; font-weight: 700; letter-spacing: 2px; }
 
 /* ---------- AR 停止畫面 ---------- */
-.scene-stopped { display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, #0b2250, #040a1a 70%); overflow-y: auto; }
+.scene-stopped { display: grid; place-items: center; background: radial-gradient(circle at 50% 35%, #0a1a58, #030818 70%); overflow-y: auto; }
 .ar-stopped { width: min(92vw, 460px); padding: calc(var(--sat) + 24px) 8px calc(var(--sab) + 24px); text-align: center; }
 .ar-stopped-icon { width: 76px; height: 76px; margin: 0 auto 14px; display: grid; place-items: center; border: 1px solid var(--glass-border); border-radius: 50%; color: var(--pending); background: rgba(212,178,106,0.1); }
 .ar-stopped h1 { font-family: var(--font-serif); font-size: 26px; margin-bottom: 8px; }

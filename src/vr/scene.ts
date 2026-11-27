@@ -23,6 +23,7 @@ import {
 } from "./math";
 import { drawVR, type RenderState } from "./render";
 import { invalidateGlyphs } from "./glyphs";
+import { Bloom } from "./bloom";
 
 export interface SceneInput {
   /** 感測引擎的顯示方位（已含校正／磁偏角／朝天凍結）；null＝無 */
@@ -79,6 +80,7 @@ export class VRScene {
   private emaDt = 16;
   private slowSince = 0;
   private clock = 0;
+  private bloom = new Bloom();
   facingSector: DirectionDeg | null = null;
 
   constructor(host: HTMLElement, cb: VRSceneCallbacks) {
@@ -106,6 +108,7 @@ export class VRScene {
     if (this.reducedMotion) this.fx = 0;
     // 發光字貼圖要等內嵌字體載入後才烘焙，否則會烘進備用字體
     if (document.fonts) {
+      void document.fonts.load('700 24px "BZ Kai"', "乾坎艮震巽離坤兌").then(() => invalidateGlyphs()).catch(() => undefined);
       void document.fonts.load('700 24px "BZ Serif"', "乾坎艮震巽離坤兌").then(() => invalidateGlyphs()).catch(() => undefined);
       void document.fonts.ready.then(() => invalidateGlyphs()).catch(() => undefined);
     }
@@ -242,6 +245,8 @@ export class VRScene {
 
     ctx.setTransform(this.dpr, 0, 0, this.dpr, 0, 0);
     drawVR(ctx, this.W, this.H, this.snapshot(b, facingAz) as RenderState);
+    // 柔光擴散：讓整片藍光暈開（靜態模式省略以節省效能）
+    if (this.fx >= 1) this.bloom.apply(this.canvas, ctx, 0.55);
   };
 
   private snapshot(b: Basis, facingAz: number): RenderState {
