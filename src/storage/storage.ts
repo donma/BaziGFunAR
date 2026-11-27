@@ -72,6 +72,8 @@ export interface AppSettings {
   homeSetAt: string | null;
   /** 畫面視角（影像長邊，度）。偽 VR 盤面的透視用；預設概估值，可在設定微調 */
   fovLongDeg: number;
+  /** 拍照後自動下載 AR 合成照（同時仍保存紀錄） */
+  autoDownload: boolean;
 }
 
 export interface LSData {
@@ -89,6 +91,7 @@ export function defaultSettings(): AppSettings {
     homeAtCenter: false,
     homeSetAt: null,
     fovLongDeg: 66,
+    autoDownload: true,
   };
 }
 
@@ -112,6 +115,7 @@ function migrateLS(data: LSData): LSData {
   if (typeof data.settings.manualOffsetDeg !== "number") data.settings.manualOffsetDeg = 0;
   if (typeof data.settings.homeAtCenter !== "boolean") data.settings.homeAtCenter = false;
   if (typeof data.settings.homeSetAt !== "string") data.settings.homeSetAt = null;
+  if (typeof data.settings.autoDownload !== "boolean") data.settings.autoDownload = true;
   if (typeof data.settings.fovLongDeg !== "number" || data.settings.fovLongDeg < 40 || data.settings.fovLongDeg > 100) {
     data.settings.fovLongDeg = 66;
   }

@@ -118,6 +118,11 @@ export async function shareOrDownload(filename: string, blob: Blob): Promise<"sh
       if ((e as DOMException).name === "AbortError") return "shared"; // 使用者取消不算失敗
     }
   }
+  return downloadBlob(filename, blob);
+}
+
+/** 直接以瀏覽器下載（不彈分享選單） */
+export function downloadBlob(filename: string, blob: Blob): "downloaded" {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;

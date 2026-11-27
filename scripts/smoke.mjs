@@ -37,6 +37,8 @@ const context = await browser.newContext({
   permissions: ["camera", "accelerometer", "gyroscope", "magnetometer"],
 });
 const page = await context.newPage();
+const downloads = [];
+page.on("download", (d) => downloads.push(d.suggestedFilename()));
 page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
 page.on("pageerror", (e) => errors.push(String(e)));
 page.on("response", (r) => { if (r.status() >= 400) errors.push(`HTTP ${r.status()}: ${r.url()}`); });
@@ -159,6 +161,7 @@ try {
   await page.locator(".shutter").click();
   await page.waitForTimeout(1800);
   report.toast = await page.locator(".toast").textContent().catch(() => null);
+  report.downloads = downloads;
 
   report.db = await page.evaluate(async () => {
     const open = () => new Promise((resolve, reject) => {
@@ -219,6 +222,8 @@ try {
     report.sheetTitle &&
     report.db.records >= 1 &&
     report.db.photos >= 2 &&
+    downloads.length === 1 &&
+    /^bazigfun-ar-\d{8}-\d{6}\.jpg$/.test(downloads[0] ?? "") &&
     errors.length === 0;
   if (!ok) process.exitCode = 1;
 } catch (e) {

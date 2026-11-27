@@ -62,6 +62,22 @@ export function SettingsSheet(p: {
       </div>
 
       <div className="set-section">
+        <h3>拍照</h3>
+        <label className="switch-row">
+          <input
+            type="checkbox"
+            checked={p.settings.autoDownload}
+            onChange={(e) => p.updateSettings({ autoDownload: e.target.checked })}
+          />
+          <span>
+            <b>拍照後自動下載 AR 合成照</b>
+            <small>每次按快門，除了存入「紀錄」，也會讓瀏覽器下載那張 AR 合成照（JPEG）。原始實景照只存在紀錄裡，可在紀錄中分享。</small>
+          </span>
+        </label>
+        <p className="hint">iPhone 的 Safari 可能會詢問是否下載；以「加入主畫面」方式使用時，下載行為依 iOS 而定，若沒有出現檔案，請到「紀錄」按「分享」→ 儲存影像。</p>
+      </div>
+
+      <div className="set-section">
         <h3>住宅中心（選用）</h3>
         <label className="switch-row">
           <input

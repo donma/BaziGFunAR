@@ -46,3 +46,11 @@ export function makeCaptureRecord(p: CaptureRecordParts): PhotoRecordMeta {
     schemaVersion: SCHEMA_VERSION,
   };
 }
+
+/** 自動下載的檔名（本機時間）：bazigfun-ar-20261127-124455.jpg；raw 版加 -raw */
+export function photoFileName(now: Date, kind: "ar" | "raw" = "ar"): string {
+  const p = (n: number) => String(n).padStart(2, "0");
+  const d = `${now.getFullYear()}${p(now.getMonth() + 1)}${p(now.getDate())}`;
+  const t = `${p(now.getHours())}${p(now.getMinutes())}${p(now.getSeconds())}`;
+  return `bazigfun-ar-${d}-${t}${kind === "raw" ? "-raw" : ""}.jpg`;
+}

@@ -18,7 +18,8 @@ import { requestOrientationPermission, type SensorPermission } from "../sensors/
 import { VRScene } from "../vr/scene";
 import { detectionStateOf, floorStatus, floorStatusText } from "../vr/status";
 import { capturePair } from "../capture/capture";
-import { makeCaptureRecord } from "../capture/record";
+import { makeCaptureRecord, photoFileName } from "../capture/record";
+import { downloadBlob } from "../export/exporter";
 import { putPhoto, putRecord, uuid, type AppSettings, type Person } from "../storage/storage";
 import { STAR_DESC, STAR_LAYOUT, STAR_SHORT } from "./starText";
 import { BottomSheet } from "./ui";
@@ -288,7 +289,17 @@ export function ARScreen(p: ARScreenProps) {
         }),
       );
       p.onCaptureSaved();
-      p.showToast("已拍照並記錄（原始實景＋AR 合成）");
+      // 拍照後自動下載 AR 合成照（紀錄已保存；下載失敗不影響紀錄）
+      let downloaded = false;
+      if (p.settings.autoDownload) {
+        try {
+          downloadBlob(photoFileName(now, "ar"), pair.ar);
+          downloaded = true;
+        } catch {
+          /* 瀏覽器擋下載時略過，照片仍在「紀錄」可分享 */
+        }
+      }
+      p.showToast(downloaded ? "已拍照並下載（原始實景＋AR 合成已存入紀錄）" : "已拍照並記錄（原始實景＋AR 合成）");
     } catch (e) {
       p.showToast(`拍照失敗：${(e as Error).message}`);
     } finally {

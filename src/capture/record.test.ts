@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { makeCaptureRecord } from "./record";
+import { makeCaptureRecord, photoFileName } from "./record";
 
 const base = {
   id: "record-1",
@@ -47,5 +47,13 @@ describe("雙照片紀錄（規格 10）", () => {
     const r = makeCaptureRecord({ ...base, azimuthDisplay: null, azimuthRaw: null, source: "none", star: "", palace: "—" });
     expect(r.azimuthDisplay).toBeNull();
     expect(r.source).toBe("none");
+  });
+});
+
+describe("自動下載檔名", () => {
+  it("以本機時間產生可排序的檔名；raw 版加 -raw", () => {
+    const d = new Date(2026, 10, 27, 9, 5, 7); // 本機時間 2026-11-27 09:05:07
+    expect(photoFileName(d)).toBe("bazigfun-ar-20261127-090507.jpg");
+    expect(photoFileName(d, "raw")).toBe("bazigfun-ar-20261127-090507-raw.jpg");
   });
 });
